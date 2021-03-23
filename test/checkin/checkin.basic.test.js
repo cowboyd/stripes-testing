@@ -1,6 +1,7 @@
 import uuid from 'uuid';
 import { test, Page } from 'bigtest';
 import { bigtestGlobals } from '@bigtest/globals';
+import { TextField } from '../../interactors';
 
 import {
   createCheckout,
@@ -19,8 +20,6 @@ import {
   Core,
   Checkin,
 } from '../../helpers';
-
-bigtestGlobals.defaultInteractorTimeout = 10000;
 
 const ITEM_BARCODE = uuid();
 
@@ -68,11 +67,18 @@ const prepareCheckedOutItem = () => {
   };
 };
 
+function Timeout(durationMS) {
+  return {
+    description: `Set interactor timeout -> ${durationMS}`,
+    async action() {
+      bigtestGlobals.defaultInteractorTimeout = durationMS;
+    }
+  };
+}
+
 export default test('Check In: basic check in')
+  .step(Timeout(10000))
   .step(Page.visit('/'))
   .step(Authn.login('diku_admin', 'admin'))
-  .step(Core.Home().exists())
-  .step(prepareCheckedOutItem())
   .step(Core.Nav().open('checkin'))
-  .step(Checkin.checkIn(ITEM_BARCODE))
-  .step(Core.Nav().logout());
+  .step(TextField({ id: 'input-item-barcode' }).fillIn(ITEM_BARCODE));
