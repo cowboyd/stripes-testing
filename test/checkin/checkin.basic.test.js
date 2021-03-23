@@ -22,9 +22,9 @@ import {
 
 bigtestGlobals.defaultInteractorTimeout = 10000;
 
-const ITEM_BARCODE = uuid();
 
 const prepareCheckedOutItem = () => {
+  const barcode = uuid();
   return {
     description: 'Prepare Check Out item',
     action: async () => {
@@ -49,7 +49,7 @@ const prepareCheckedOutItem = () => {
         }],
         items: [
           [{
-            barcode: ITEM_BARCODE,
+            barcode,
             missingPieces: '3',
             numberOfMissingPieces: '3',
             status: { name: 'Available' },
@@ -60,10 +60,12 @@ const prepareCheckedOutItem = () => {
       });
 
       await createCheckout({
-        itemBarcode: ITEM_BARCODE,
+        itemBarcode: barcode,
         userBarcode: users[0].barcode,
         servicePointId: userServicePoints[0].id,
       });
+
+      return { barcode };
     },
   };
 };
@@ -74,5 +76,4 @@ export default test('Check In: basic check in')
   .step(Core.Home().exists())
   .step(prepareCheckedOutItem())
   .step(Core.Nav().open('checkin'))
-  .step(Checkin.checkIn(ITEM_BARCODE))
-  .step(Core.Nav().logout());
+  .step('checkin item', ({ barcode }) => Checkin.checkIn(barcode).action());
